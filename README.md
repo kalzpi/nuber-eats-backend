@@ -189,3 +189,57 @@ import * as Joi from 'joi'
 ```
 
 우선, Joi는 javascript로 만들어진 package라 위와 같이 import하여야 한다. 위 코드를 통해 env 내의 문구 또한 validation이 가능해진다.
+
+## 3 TYPEORM AND NEST
+
+### 3.1 Our First Entity
+
+```typescript
+import { Field, ObjectType } from '@nestjs/graphql';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+
+@ObjectType()
+@Entity()
+export class Restaurant {
+  @Field((type) => Number)
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Field(() => String)
+  @Column()
+  name: string;
+
+  @Field((type) => Boolean, { nullable: true })
+  @Column()
+  isVegan?: boolean;
+
+  @Field(() => String)
+  @Column()
+  address: string;
+
+  @Field(() => String)
+  @Column()
+  ownerName: string;
+}
+
+```
+
+기존의 @Field decorator나 @ObjectType decorator는 GraphQL schema를 자동 생성하기 위한 목적이었다면, TypeORM을 통해 database migration을 하기 위해서는 @Entity decorator가 필요하다. 이 두 가지의 decorator는 놀랍게도 같이 사용이 가능하며, 위와 같이 구성 하면 된다.
+그러나 위 내용을 변경한다고 해서 곧바로 migration이 이루어지지 않는데, 왜냐하면 app.module.ts에서 typeormModule에 이 entity를 추가하지 않았기 때문이다.
+
+```typescript
+    TypeOrmModule.forRoot({
+      type: 'mysql',
+      host: process.env.DB_HOST,
+      port: +process.env.DB_PORT,
+      username: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
+      synchronize: process.env.NODE_ENV !== 'prod',
+      logging: true,
+      entities: [Restaurant],
+    }),
+```
+
+위와 같이 추가해주면, 자동으로 migration이 일어나서 db상에 Restaurant table이 추가된 것을 확인할 수 있다.
+여기서 synchronize는 code 상에 database 구조 변경이 일어났을 시 동시에 DB 또한 변경 내용에 맞게 바꾸어주는 역할을 하는데, production 모드에서는 절대 원하지 않을 기능이기에 앞서 했던것과 마찬가지로 mode를 감지하여 none production에서만 true가 되도록 한다.
