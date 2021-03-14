@@ -243,3 +243,27 @@ export class Restaurant {
 
 위와 같이 추가해주면, 자동으로 migration이 일어나서 db상에 Restaurant table이 추가된 것을 확인할 수 있다.
 여기서 synchronize는 code 상에 database 구조 변경이 일어났을 시 동시에 DB 또한 변경 내용에 맞게 바꾸어주는 역할을 하는데, production 모드에서는 절대 원하지 않을 기능이기에 앞서 했던것과 마찬가지로 mode를 감지하여 none production에서만 true가 되도록 한다.
+
+### 3.4 Create Restaurant
+
+```typescript
+@Injectable()
+export class RestaurantService {
+  constructor(
+    @InjectRepository(Restaurant)
+    private readonly restaurants: Repository<Restaurant>,
+  ) {}
+  getAll(): Promise<Restaurant[]> {
+    return this.restaurants.find();
+  }
+  createRestaurant(
+    createRestaurantDto: CreateRestaurantDto,
+  ): Promise<Restaurant> {
+    const newRestaurant = this.restaurants.create(createRestaurantDto);
+    return this.restaurants.save(newRestaurant);
+  }
+}
+```
+
+RestaurantService에서 추가된 createRestaurant method를 보자. 여기서는 앞서 배운것 처럼 ArgsType을 이용한 CreateRestaurantDto를 argument로 받아, instance를 만든 뒤 Repository에 save해준다.
+여기서 중요한 것은, 실제 DB를 구성하는 것은 restaurant.entity.ts에서 @Entity decorator를 사용해준 Restaurant class이지만 그 입력은 create-restaurant.dto.ts에서 정의한 CreateRestaurantDto를 통해 받고 있다. Argument의 모든 validation이나 type definition등은 dto에서 이루어지는데, 매번 entity를 update 할 때마다 관련된 dto들도 함께 이중 작성을 해 주어야 하는 불편함이 따른다. 이는 graphql-prisma를 사용할 때에도 느꼈던 불편함(Prisma datamodel과 graphql schema 이중 작성)이다.
