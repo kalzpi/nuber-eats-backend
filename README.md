@@ -45,3 +45,17 @@ export class Restaurant {
 ```
 
 ObjectType decorator를 사용하여 Typescript class를 GraphQL type으로도 정의할 수 있게 함.
+
+### 1.3 Arguments
+
+```typescript
+@Resolver((of) => Restaurant)
+export class RestaurantResolver {
+  @Query((returns) => [Restaurant])
+  restaurants(@Args('veganOnly') veganOnly: boolean): Restaurant[] {
+    return [];
+  }
+}
+```
+
+Nestjs REST API때와 마찬가지로, argument 또한 decorator로 요청할 수 있다. 여기서 편리한 것은, argument의 type을 typescript 방식으로만 정의 해 두어도 graphql Playground에서 확인해 보면 argument의 type definition이 잘 이루어지고 있다는 점이다.
