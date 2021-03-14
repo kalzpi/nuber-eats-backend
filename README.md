@@ -267,3 +267,24 @@ export class RestaurantService {
 
 RestaurantService에서 추가된 createRestaurant method를 보자. 여기서는 앞서 배운것 처럼 ArgsType을 이용한 CreateRestaurantDto를 argument로 받아, instance를 만든 뒤 Repository에 save해준다.
 여기서 중요한 것은, 실제 DB를 구성하는 것은 restaurant.entity.ts에서 @Entity decorator를 사용해준 Restaurant class이지만 그 입력은 create-restaurant.dto.ts에서 정의한 CreateRestaurantDto를 통해 받고 있다. Argument의 모든 validation이나 type definition등은 dto에서 이루어지는데, 매번 entity를 update 할 때마다 관련된 dto들도 함께 이중 작성을 해 주어야 하는 불편함이 따른다. 이는 graphql-prisma를 사용할 때에도 느꼈던 불편함(Prisma datamodel과 graphql schema 이중 작성)이다.
+
+### 3.5 Mapped Types
+
+dto에 모든 type을 일일히 열거하기보다는 Mapped Types를 사용하는 것이 더 효율적인 코드를 구성하게 해준다. 다만 Mapped Types는 Parent type이 InputType이어야만 하는데, Restaurant type은 graphql schema 정의를 위해 ObjectType으로 이미 선언되어 있는 상태이다. 이 것에는 두 가지 방법이 있는데, 첫 번째로 아래와 같이 Mapped Type의 argument에 InputType을 작성하는 방법이다. 이러면 Parent type을 InputType으로 바꾸어 받는다.
+
+```typescript
+@InputType()
+export class CreateRestaurantDto extends OmitType(
+  Restaurant,
+  ['id'],
+  InputType,
+) {}
+```
+
+혹은, 아래와 같이 entity에 abstract input type을 추가하는 방법도 있다.
+
+```typescript
+@InputType({isAbstract:true})
+```
+
+Mapped type을 사용하게 되며 validator들을 모두 잃었는데, validator는 entity에도 적용이 가능하다.
