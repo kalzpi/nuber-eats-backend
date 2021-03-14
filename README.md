@@ -305,3 +305,30 @@ GraphQL schema, DB structure, validation
 
 첫 번째 Field decorator의 defaultValue가 false이면, graphql mutation에서 isVegan을 보내지 않아도 dto는 isVegan:false를 갖게 된다. 두 번째 @Column에서 default: false는 DB의 restaurant table의 isVegan column 자체에 default값을 false로 지정해준다. 따라서 graphql이 아니라 manual로 sql query를 날려 row를 생성할 때에도 isVegan은 default false를 갖도록 해주는 것이다.
 IsOptional은 validator에 이 값은 not required라는 것을 알려주는 역할을 한다.
+
+### 3.7 Update Restaurant part One
+
+update-restaurant.dto.ts 파일 추가.
+
+```typescript
+import { ArgsType, Field, InputType, PartialType } from '@nestjs/graphql';
+import { CreateRestaurantDto } from './create-restaurant.dto';
+
+@InputType()
+export class UpdateRestaurantInputType extends PartialType(
+  CreateRestaurantDto,
+) {}
+
+@ArgsType()
+export class UpdateRestaurantDto {
+  @Field((type) => Number)
+  id: number;
+
+  @Field((type) => UpdateRestaurantInputType)
+  data: UpdateRestaurantInputType;
+}
+
+```
+
+PartialType으로 Restaurant가 아니라 CreateRestaurantDto를 가져오는 이유는 id까지 optional로 하고싶지 않기 때문이다. 그런데 이렇게 하면 id를 받을 수 없는데, 해결 방식에는 두 가지가 있다.
+첫 번째는 resolver의 updateRestaurant method에서 @Args 를 id와 dto 각각 지정해주는 방법이며, 두 번째는 위 코드와 같이 id과 UpdateRestaurantInputType을 같이 가지는 새로운 ArgsType을 생성해주는 방법이다.
