@@ -288,3 +288,20 @@ export class CreateRestaurantDto extends OmitType(
 ```
 
 Mapped type을 사용하게 되며 validator들을 모두 잃었는데, validator는 entity에도 적용이 가능하다.
+
+
+### 3.6 Optional Types and Columns
+
+이제 우리는 Entity를 update할 때 세 가지를 동시에 신경써줘야 한다.
+GraphQL schema, DB structure, validation
+
+```typescript
+  @Field((type) => Boolean, { defaultValue: false })
+  @Column({ default: false })
+  @IsOptional()
+  @IsBoolean()
+  isVegan?: boolean;
+```
+
+첫 번째 Field decorator의 defaultValue가 false이면, graphql mutation에서 isVegan을 보내지 않아도 dto는 isVegan:false를 갖게 된다. 두 번째 @Column에서 default: false는 DB의 restaurant table의 isVegan column 자체에 default값을 false로 지정해준다. 따라서 graphql이 아니라 manual로 sql query를 날려 row를 생성할 때에도 isVegan은 default false를 갖도록 해주는 것이다.
+IsOptional은 validator에 이 값은 not required라는 것을 알려주는 역할을 한다.
