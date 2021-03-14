@@ -16,7 +16,7 @@ Code first approach will be done.
 
 위에서 autoSchemaFile: true 로만 적어두면 스키마 파일을 실제로 생성하지 않고 메모리에서만 생성한다.
 
-```Typescript
+```typescript
 @Resolver()
 export class RestaurantResolver {
   @Query(() => Boolean)
@@ -28,3 +28,20 @@ export class RestaurantResolver {
 
 Return type definition in @Query decorator is for graphql schema.(Required)
 Return type definition in isWorking() is for typescript.(Optional)
+
+### 1.2 ObjectType
+
+```typescript
+// ./src/restaurants/entities/restaurant.entity.ts
+import { Field, ObjectType } from '@nestjs/graphql';
+
+@ObjectType()
+export class Restaurant {
+  @Field(() => String)
+  name: string;
+  @Field((type) => Boolean, { nullable: true })
+  isGood?: boolean;
+}
+```
+
+ObjectType decorator를 사용하여 Typescript class를 GraphQL type으로도 정의할 수 있게 함.
