@@ -156,3 +156,36 @@ mutation {
     }
 }
 ```
+
+### 1.5 Validating ArgsTypes
+
+특별할 것은 없다. class-validator를 사용하려면 main.ts에 app.useGlobalPipes를 활성화 하는것을 잊지말자.
+
+## 2 DATABASE CONFIGURATION
+
+### 2.5 Configuration ConfigService
+
+Nestjs는 dotenv 위에서 작동하는 config 모듈을 제공한다.
+여기에 cross-env를 사용하여 package.json에서 각 mode에 대해 process.env에서 접근 가능한 변수를 실행 명령에서 구분하여 줄 수 있는데, 이를 ConfigModule에서 읽어들여 각 mode마다 어떠한 env file을 사용할지 설정할 수 있다.
+
+### 2.6 Validating ConfigService
+
+```typescript
+import * as Joi from 'joi'
+
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: process.env.NODE_ENV === 'dev' ? '.env.dev' : '.env.test',
+      ignoreEnvFile: process.env.NODE_ENV === 'prod',
+      validationSchema: Joi.object({
+        NODE_ENV: Joi.string().valid('dev', 'prod'),
+        DB_HOST: Joi.string().required(),
+        DB_PORT: Joi.string().required(),
+        DB_USER: Joi.string().required(),
+        DB_PASSWORD: Joi.string().required(),
+        DB_NAME: Joi.string().required(),
+      }),
+    }),
+```
+
+우선, Joi는 javascript로 만들어진 package라 위와 같이 import하여야 한다. 위 코드를 통해 env 내의 문구 또한 validation이 가능해진다.
