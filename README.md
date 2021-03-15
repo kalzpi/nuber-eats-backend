@@ -368,3 +368,39 @@ export class User extends CoreEntity {
 
 Typescript type definition과 typeorm decorator는 typescript enum type을 그대로 받아들일 수 있지만, graphql의 경우 다르다. registerEnumType을 통해 Enum을 따로 register 하여야 @Field decorator에서 이해할 수 있다.
 
+## 5 USER AUTHENTICATION
+
+### 5.1 Generating JWT
+
+```typescript
+// users.service.ts
+import * as jwt from 'jsonwebtoken'
+const token = jwt.sign({ id: user.id }, process.env.TOKEN_SECRET);
+```
+
+위와 같이 곧바로 process.env에 접근해서 필요한 값을 불러올 수도 있지만, Nestjs에서는 다른 방법을 권장한다.
+
+```typescript
+// users.module.ts
+@Module({
+  imports: [TypeOrmModule.forFeature([User]), ConfigService],
+  providers: [UsersResolver, UsersService],
+})
+export class UsersModule {}
+```
+
+ConfigService를 users module에서 import하였는데, 이렇게 되면 Nestjs는 app.module에 import된 ConfigModule의 존재를 알아채고 users provider에서 config에 접근이 가능하도록 해준다.
+
+```typescript
+  constructor(
+    @InjectRepository(User) private readonly users: Repository<User>,
+    private readonly config: ConfigService,
+  ) {}
+```
+
+우선은 UsersService class의 constructor에서 ConfigService type을 갖는 config를 선언해준다. 그러면 class 내부에서 config에 접근할 수 있게 되는데, 아래와 같이 env에 접근할 수 있다.
+
+```typescript
+const token = jwt.sign({ id: user.id }, this.config.get('TOKEN_SECRET'));
+```
+
