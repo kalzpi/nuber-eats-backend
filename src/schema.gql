@@ -18,5 +18,11 @@ type Mutation {
 input CreateAccountInput {
   email: String!
   password: String!
-  role: String!
+  role: UserRole!
+}
+
+enum UserRole {
+  Client
+  Owner
+  Delivery
 }

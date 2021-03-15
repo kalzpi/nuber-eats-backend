@@ -332,3 +332,39 @@ export class UpdateRestaurantDto {
 
 PartialType으로 Restaurant가 아니라 CreateRestaurantDto를 가져오는 이유는 id까지 optional로 하고싶지 않기 때문이다. 그런데 이렇게 하면 id를 받을 수 없는데, 해결 방식에는 두 가지가 있다.
 첫 번째는 resolver의 updateRestaurant method에서 @Args 를 id와 dto 각각 지정해주는 방법이며, 두 번째는 위 코드와 같이 id과 UpdateRestaurantInputType을 같이 가지는 새로운 ArgsType을 생성해주는 방법이다.
+
+## 4 USER CRUD
+
+### 4.5 Create Account Mutation
+
+```typescript
+// enum for typeorm
+enum UserRole {
+  Client,
+  Owner,
+  Delivery,
+}
+
+// register enum for Graphql
+registerEnumType(UserRole, { name: 'UserRole' });
+
+@InputType({ isAbstract: true })
+@ObjectType()
+@Entity()
+export class User extends CoreEntity {
+  @Field((type) => String)
+  @Column()
+  email: string;
+
+  @Field((type) => String)
+  @Column()
+  password: string;
+
+  @Field((type) => UserRole)
+  @Column({ type: 'enum', enum: UserRole })
+  role: UserRole;
+}
+```
+
+Typescript type definition과 typeorm decorator는 typescript enum type을 그대로 받아들일 수 있지만, graphql의 경우 다르다. registerEnumType을 통해 Enum을 따로 register 하여야 @Field decorator에서 이해할 수 있다.
+
