@@ -572,3 +572,66 @@ bootstrap();
 ```
 
 이 경우 app의 모든 영역에서 이 middleware가 작동하게 된다.
+
+다만 이 프로젝트에서 JwtMiddleware는 user repository에 접근할 것이기 때문에 class middleware를 사용한다.
+repository 혹은 dependency injection 등을 사용해야 하면 class middleware를 써야 하고, 이 경우 main.ts에서 사용 할 수는 없다.
+
+### 5.8 GraphQL Context
+
+```typescript
+@Injectable()
+export class JwtMiddleware implements NestMiddleware {
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly userService: UsersService,
+  ) {}
+  async use(req: Request, res: Response, next: NextFunction) {
+    if ('x-jwt' in req.headers) {
+      const token = req.headers['x-jwt'];
+      const decoded = this.jwtService.verify(token.toString());
+      if (typeof decoded === 'object' && decoded.hasOwnProperty('id')) {
+        try {
+          const user = await this.userService.findById(decoded['id']);
+          req['user'] = user;
+        } catch (error) {}
+      }
+    }
+    next();
+  }
+}
+```
+
+이제 middleware 내용을 채우자. 우선 jwtMiddleware는 req를 중간에 가로채서 그 안의 token을 읽어들여야 하고, token 안에 있는 user id 정보를 통해 user를 찾아 req['user']에 그 정보를 주고 next() 를 실행하여 본래의 route로 req를 보낸다.
+따라서 dependency injection이 필요하다. 먼저 @Injectable decorator를 붙여주고 constructor 안에서 jwtService와 userService를 불러온다. 여기서 UsersService는 에러가 날 것인데, usersModule에서 export를 해 주어야 한다.
+
+jwtService에는 token을 비교하는 verify method를 추가해주고 JwtMiddleware에서 req의 x-jwt에 할당된 string을 inject된 jwtservice의 verify method로 전달하여 decoded된 {id:"some user id"}를 받는다.
+
+userService에 findById: id로 user를 찾아 return하는 method를 추가하고 위에서 찾은 id로 user를 찾아낸다.
+
+middleware는 이 user를 req['user']에 할당하여 전달해준다.
+
+그렇다면 이 req.user에는 어떻게 접근하여야 할까? 정답은 context 사용이다. Apollo server에서 사용하는 context 개념은 GraphQLModule의 config에서도 사용 가능하다.
+
+```typescript
+    GraphQLModule.forRoot({
+      autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+      context: ({ req }) => ({ user: req['user'] }),
+    }),
+```
+
+이 context는 이제 어디에서든 접근 가능해지며, 아래와 같이 me method에서 user를 return하도록 하는 것으로 마무리된다.
+
+```typescript
+  @Query((returns) => User)
+  me(@Context() context) {
+    if (!context.user) {
+      return;
+    } else {
+      return context.user;
+    }
+  }
+```
+
+@Context decorator가 사용되었음에 주의하라.
+
+그런데 사실 이 방법은 좋지 않다. 모든 Resolver에서 같은 내용을 계속하여 적어주어야 하기 때문이다. context안에 user가 있는지 없는지를 매번 모든 resolver에 작성하는 것은 바람직하지 않기 때문에 Guard를 사용해야 한다.
