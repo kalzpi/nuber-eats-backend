@@ -404,3 +404,15 @@ ConfigService를 users module에서 import하였는데, 이렇게 되면 Nestjs�
 const token = jwt.sign({ id: user.id }, this.config.get('TOKEN_SECRET'));
 ```
 
+이것이 바로 Nestjs의 Dependency Injection이다.
+
+### Dynamic Module and Static Module
+
+```typescript
+    GraphQLModule.forRoot({
+      autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+    }),
+    UsersModule
+```
+
+.forRoot 안에서 Module의 configuration을 해주는 것이 Dynamic Module이고, UsersModule처럼 어떠한 configuration도 붙어있지 않은 것이 Static Module이다.

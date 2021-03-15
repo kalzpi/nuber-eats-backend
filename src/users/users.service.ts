@@ -6,12 +6,14 @@ import { CreateAccountInput } from './entities/dtos/create-account.dto';
 import { LoginInput } from './entities/dtos/login.dto';
 import { User } from './entities/user.entity';
 import { ConfigService } from '@nestjs/config';
+import { JwtService } from 'src/jwt/jwt.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User) private readonly users: Repository<User>,
     private readonly config: ConfigService,
+    private readonly jwtService: JwtService,
   ) {}
 
   async createAccount({
@@ -47,7 +49,7 @@ export class UsersService {
       const passwordCorrect = await user.checkPassword(password);
       if (!passwordCorrect) return { ok: false, error: 'Invalid Credential' };
       const token = jwt.sign({ id: user.id }, this.config.get('TOKEN_SECRET'));
-      return { ok: true, token: 'lalalalalalala' };
+      return { ok: true, token };
     } catch (error) {
       return { ok: false, error };
     }
