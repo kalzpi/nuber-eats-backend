@@ -504,3 +504,71 @@ const token = this.jwtService.sign({ id: user.id });
 
 또한 5장에서 정의한 JwtModule의 forRoot method는 사실 더 간단한 해결방안이 있었다. JwtService에서 global module인 ConfigModule을 import하고 거기에서 env에 접근해도 동일하게 작동하기 때문이다. 그러나 실제로 DynamicModule을 어떻게 정의하고 활용하는지 알아보기 위해 굳이 조금 더 어려운 길을 선택하여 구현한 것이다.
 
+### 5.6 Middlewares in NestJS
+
+아래와 같이 jwt middleware를 생성해준다.
+
+```typescript
+// jwt.middleware.ts
+import { NestMiddleware } from '@nestjs/common';
+import { NextFunction, Request, Response } from 'express';
+
+export class JwtMiddleware implements NestMiddleware {
+  use(req: Request, res: Response, next: NextFunction) {
+    console.log(req.headers);
+    next();
+  }
+}
+
+```
+
+이 Middleware를 적용하고싶은 App의 module에 사용하면 된다. 여기서는 jwt middleware를 모든 곳에서 사용하고 싶기 때문에 아래와 같이 app module에 적용한다.
+
+```typescript
+// app.module.ts
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(JwtMiddleware).forRoutes({
+      path: '/graphql',
+      method: RequestMethod.POST,
+    });
+  }
+}
+```
+
+Middleware를 만들 때 반드시 NestMiddleware interface를 implements 해야하는 것은 아니다. 이것은 단지 미리 정의된 NestMiddleware와 동일하게 행동해라는 뜻으로, custom function을 middleware로서 사용하는 것도 가능하다.
+
+```typescript
+// jwt.middleware.ts
+import { NextFunction, Request, Response } from 'express';
+
+export function jwtMiddleware(req: Request, res: Response, next: NextFunction) {
+  console.log(req.headers);
+  next();
+}
+
+// app.modules.ts
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(jwtMiddleware).forRoutes({
+      path: '/graphql',
+      method: RequestMethod.POST,
+    });
+  }
+}
+
+```
+
+혹은 아래와 같이 main.ts에서 사용하는 것도 가능하다.
+
+```typescript
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  app.useGlobalPipes(new ValidationPipe());
+  app.use(jwtMiddleware)
+  await app.listen(3000);
+}
+bootstrap();
+```
+
+이 경우 app의 모든 영역에서 이 middleware가 작동하게 된다.
