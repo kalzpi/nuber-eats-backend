@@ -416,3 +416,59 @@ const token = jwt.sign({ id: user.id }, this.config.get('TOKEN_SECRET'));
 ```
 
 .forRoot 안에서 Module의 configuration을 해주는 것이 Dynamic Module이고, UsersModule처럼 어떠한 configuration도 붙어있지 않은 것이 Static Module이다.
+
+### 5.4 JWT Module part Two
+
+JwtModule 내부에 forRoot method를 정의해준다.
+
+```typescript
+@Module({})
+@Global()
+export class JwtModule {
+  static forRoot(options: JwtModuleOptions): DynamicModule {
+    return {
+      module: JwtModule,
+      providers: [JwtService, { provide: CONFIG_OPTIONS, useValue: options }],
+      exports: [JwtService],
+    };
+  }
+}
+```
+
+이 method는 아래 JwtModuleOptions interface 형태로 인자를 제공받아, DynamicModule을 return하는 method이다.
+
+```typescript
+export interface JwtModuleOptions {
+  privateKey: string;
+}
+```
+
+DynamicModule에서 providers에 JwtService를 입력하는 것은 일종의 short cut으로, 제대로 풀어서 쓰면 아래와 동일하다.
+
+```typescript
+{provide: JwtService, useClass: JwtService}
+```
+
+providers array 안에는 아래와 같이 직접 값을 전달할 수도 있다.
+
+
+```typescript
+{ provide: CONFIG_OPTIONS, useValue: options }
+```
+
+여기서 CONFIG_OPTIONS는 별도의 constant.ts file에 정의해준 string이다. useClass 대신 useValue를 사용하여 JwtModule.forRoot()의 인자인 options를 provider를 통해 전달한다. 이것은 service에서 아래와 같이 불러와 사용 가능하다.
+
+```typescript
+@Injectable()
+export class JwtService {
+  constructor(
+    @Inject(CONFIG_OPTIONS) private readonly options: JwtModuleOptions,
+  ) {
+    console.log(options);
+  }
+  hello() {}
+}
+```
+
+여기서 options를 console.log 해보면 app.module에서 forRoot 안에 넣어주었던 {primaryKey: "some env key"} 를 출력하는 것을 알 수 있다.
+
