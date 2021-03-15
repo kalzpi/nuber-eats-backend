@@ -472,3 +472,35 @@ export class JwtService {
 
 여기서 options를 console.log 해보면 app.module에서 forRoot 안에 넣어주었던 {primaryKey: "some env key"} 를 출력하는 것을 알 수 있다.
 
+### 5.5 JWT Module part Three
+
+이제 앞서 usersService에서 직접 jwt를 import하고 global module인 ConfigModule을 import해서 token을 생성하던 내용들을 모두 지운다.
+
+대신 아래와 같이 JwtService의 sign method를 통해 token을 받게 수정한다.
+
+```typescript
+// jwt.service.ts
+import * as jwt from 'jsonwebtoken';
+import { Inject, Injectable } from '@nestjs/common';
+import { JwtModuleOptions } from './jwt.interfaces';
+import { CONFIG_OPTIONS } from './jwt.constants';
+
+@Injectable()
+export class JwtService {
+  constructor(
+    @Inject(CONFIG_OPTIONS) private readonly options: JwtModuleOptions,
+  ) {}
+  sign(payload: object): string {
+    return jwt.sign(payload, this.options.privateKey);
+  }
+}
+
+// user.service.ts
+const token = this.jwtService.sign({ id: user.id });
+
+```
+
+여기서 주목할점은 sign method가 payload라는 object를 인자로 받는다는 점이다. 따라서 이 JwtModule은 어느 프로젝트에서든 import해서 사용할 수 있는 Module이다. 단순히 제공받은 payload를 env의 secret을 이용하여 token화 해주는 method이기 때문이다. 만약 이것을 원하지 않고 오로지 이 프로젝트만을 위해, 그리고 token안에 들어가는 information을 userId에만 국한하려면 payload 대신 userId 인자를 사용하고 sign에서도 userId만을 전달해주면 된다. 나는 재사용 가능한 현재의 컨셉이 마음에 들어 유지할 생각이다.
+
+또한 5장에서 정의한 JwtModule의 forRoot method는 사실 더 간단한 해결방안이 있었다. JwtService에서 global module인 ConfigModule을 import하고 거기에서 env에 접근해도 동일하게 작동하기 때문이다. 그러나 실제로 DynamicModule을 어떻게 정의하고 활용하는지 알아보기 위해 굳이 조금 더 어려운 길을 선택하여 구현한 것이다.
+
