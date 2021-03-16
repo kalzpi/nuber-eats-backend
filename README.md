@@ -635,3 +635,58 @@ middleware는 이 user를 req['user']에 할당하여 전달해준다.
 @Context decorator가 사용되었음에 주의하라.
 
 그런데 사실 이 방법은 좋지 않다. 모든 Resolver에서 같은 내용을 계속하여 적어주어야 하기 때문이다. context안에 user가 있는지 없는지를 매번 모든 resolver에 작성하는 것은 바람직하지 않기 때문에 Guard를 사용해야 한다.
+
+### 5.14 updateProfile part Two
+
+edit-profile-dto에서 우리는 아래와 같이 EditProfileInput을 이중 mapped type으로 정의했다.
+
+```typescript
+@InputType()
+export class EditProfileInput extends PartialType(
+  PickType(User, ['email', 'password']),
+) {}
+```
+
+User type에서 email과 password field만 가져오는 PickType의 partial type을 mapped type으로 선언하고 있다. 이말인즉슨 EditProfileInput은 email, password를 field로 가지지만 필수로 요구하지는 않는 type인 것이다.
+
+그런데 GraphQL playground에서 위 type을 input으로 사용하는 editProfile mutation을 불러오고 email만 전달하면 에러가 발생한다.
+
+이것은 object destructuring의 문제인데, 아래와 같이 usersService에서 EditProfileInput의 인자 email, password를 object destructuring 하고 있기 때문이다.
+
+```typescript
+  async editProfile(userId: number, { email, password }: EditProfileInput) {
+    return this.users.update(userId, { email, password });
+  }
+```
+
+GraphQL에서 password에 아무 값도 주지 않으니 위와 같이 선언하면 password는 undefined가 될 수 밖에 없는 것이다. 아래와 같이 선언하면 올바르게 작동한다.
+
+```typescript
+  async editProfile(userId: number, editProfileInput: EditProfileInput) {
+    return this.users.update(userId, { ...editProfileInput });
+  }
+```
+
+하지만 이 update method에는 큰 특징이 있는데, 이것은 매우 빠른 update method이지만 entity가 실제로 있는지는 체크하지 않는다는 것이다. 즉, 이 method는 users entity를  update하고 있지 않으며 곧바로 DB에 쿼리를 날리고 있다.
+
+이것이 왜 문제가 되냐면, password의 경우에는 현재 entity에서 BeforeInsert, BeforeUpdate 등의 decorator로 entity가 저장되기 전에 hashing해 주는 method가 작동 중인데 이렇게 update를 사용할때는 위 decorator들이 불러지지 않는 것이다.
+
+entity.save() 존재하지 않는 entity는 save하고, 존재하는 entity는 update한다.
+
+따라서 아래와 같이 수정한다.
+
+```typescript
+  async editProfile(
+    userId: number,
+    { email, password }: EditProfileInput,
+  ): Promise<User> {
+    const user = await this.users.findOne(userId);
+    if (email) user.email = email;
+    if (password) user.password = password;
+    return this.users.save(user);
+  }
+```
+
+다만 BeforeUpdate decorator에는 문제가 있는데, password가 아닌 다른 값을 update 할 때에도 이 decorator가 작동해서 현재 hashing된 password를 다시 한번 hashing해린다.
+이 부분은 나중에 수정 예정.
+
