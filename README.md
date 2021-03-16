@@ -690,3 +690,101 @@ entity.save() 존재하지 않는 entity는 save하고, 존재하는 entity는 u
 다만 BeforeUpdate decorator에는 문제가 있는데, password가 아닌 다른 값을 update 할 때에도 이 decorator가 작동해서 현재 hashing된 password를 다시 한번 hashing해린다.
 이 부분은 나중에 수정 예정.
 
+### 6.2 Verifying User part One
+
+Relation 관계가 정의된 entity를 불러올 때 유의해야 할 것이 있다. 지금은 verification에서 user에 접근하기 위해 One-to-one relation을 verification entity에서 선언해 주었다. 하지만 막상 usersService에서 verification repository에 접근해서 verification.user를 불러와 보면 undefined로 나오는 것을 볼 수 있다.
+
+```typescript
+  async verifyEmail(code: string): Promise<boolean> {
+    const verification = await this.verifications.findOne(
+      { code }
+    );
+    if (verification) {
+      console.log(verification);
+    }
+    return false;
+  }
+```
+
+Entity를 불러올 때 그 relation을 함께 가져오는 것은 사실 상당히 비싼 기능이다. 따라서 TypeORM에서 relation을 함께 불러오고 싶다면 명시적으로 선언을 해 주어야 한다.
+
+```typescript
+  async verifyEmail(code: string): Promise<boolean> {
+    const verification = await this.verifications.findOne(
+      { code },
+      { relations: ['user'] },
+    );
+    if (verification) {
+      console.log(verification);
+    }
+    return false;
+  }
+```
+
+이렇게 해 두면 verification은 아래와 같이 user까지 함께 nest된 결과물을 보여주게 된다.
+
+```json
+Verification {
+  id: 1,
+  createdAt: 2021-03-16T04:31:01.312Z,
+  UpdatedAt: 2021-03-16T04:31:01.312Z,
+  code: '39495be7-ceb0-40eb-91a5-d4e348304dd7',
+  user: User {
+    id: 6,
+    createdAt: 2021-03-16T04:31:01.267Z,
+    UpdatedAt: 2021-03-16T04:31:01.267Z,
+    email: 'test@test.com',
+    password: '$2b$10$5HvAaE4/K.SSQ.cth6uaA.1rMpr8CZXf6iNwaD7nigwPJpmVtYLpe',
+    role: 2,
+    isVerified: false
+  }
+}
+```
+
+만약 option에서 {relation} 대신 {loadRelationId: true}로 설정해 주면 위처럼 User object 자체를 다 보여주는 것이 아니라 id로만 보여준다.
+
+### 6.3 Verifying User part Two
+
+앞서 말한 hashPassword method의 문제점을 해결해보자. 두 가지 변경사항이 있는데, 첫 번째는 password field에 옵션을 주어 select되지 않도록 하는 것이다.
+
+```typescript
+  @Field((type) => String)
+  @Column({ select: false })
+  @IsString()
+  password: string;
+```
+
+이렇게 column decorator에 옵션을 주면 이제 user entity에서 password는 select되지 않는다. 여기에 더해서 hashPassword는 user entity가 password를 갖고 있을 때에만 hashing이 실행되도록 조건을 부여한다.
+
+```typescript
+  @BeforeInsert()
+  @BeforeUpdate()
+  async hashPassword(): Promise<void> {
+    if (this.password) {
+      try {
+        this.password = await bcrypt.hash(this.password, 10);
+      } catch (e) {
+        console.log(e);
+        throw new InternalServerErrorException();
+      }
+    }
+  }
+```
+
+이러면 한 가지 문제가 발생하는데, 바로 login과 같이 user가 입력한 password와 그 id로 select 한 user entity의 password를 비교하는 것이 불가능해진다는 것이다(password는 undefined가 될 것이다.) select:false로 설정된 필드는 아래와 같이 명시적으로 선언해주면 불러올 수 있게 된다.
+
+```typescript
+      const user = await this.users.findOne(
+        { email },
+        { select: ['id', 'password'] },
+      );
+      if (!user) {
+        return { ok: false, error: 'Invalid Credential' };
+      }
+      const passwordCorrect = await user.checkPassword(password);
+      if (!passwordCorrect) return { ok: false, error: 'Invalid Credential' };
+      const token = this.jwtService.sign({ id: user.id });
+      return { ok: true, token };
+```
+
+select에 id까지 함께 불러온 이유는, 이렇게 명시적으로 select해 올 필드를 선언할 경우에는 정확하게 그 필드만을 불러오기 때문이다. 따라서 email만 select 해줄 경우 passwordCorrect까지는 true가 되겠지만, user.id가 undefined상태로 전달된 효력없는 token이 생성된다. 위와 같이 id도 함께 명시해주어야 한다.
