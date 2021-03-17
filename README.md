@@ -723,7 +723,7 @@ Entity를 불러올 때 그 relation을 함께 가져오는 것은 사실 상당
 
 이렇게 해 두면 verification은 아래와 같이 user까지 함께 nest된 결과물을 보여주게 된다.
 
-```json
+```
 Verification {
   id: 1,
   createdAt: 2021-03-16T04:31:01.312Z,
