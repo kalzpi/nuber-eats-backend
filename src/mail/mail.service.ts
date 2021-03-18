@@ -10,11 +10,7 @@ export class MailService {
     @Inject(CONFIG_OPTIONS) private readonly options: MailModuleOptions,
   ) {}
 
-  private async sendEMail(
-    subject: string,
-    template: string,
-    emailVars: EmailVar[],
-  ) {
+  async sendEmail(subject: string, template: string, emailVars: EmailVar[]) {
     const form = new FormData();
     form.append('from', `Yunho <mailgun@${this.options.domain}>`);
     form.append('to', `nicodo@naver.com`);
@@ -22,22 +18,26 @@ export class MailService {
     form.append('template', template);
     emailVars.forEach((eVar) => form.append(`v:${eVar.key}`, eVar.value));
     try {
-      await got(`https://api.mailgun.net/v3/${this.options.domain}/messages`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Basic ${Buffer.from(
-            `api:${this.options.apiKey}`,
-          ).toString('base64')}`,
+      await got.post(
+        `https://api.mailgun.net/v3/${this.options.domain}/messages`,
+        {
+          headers: {
+            Authorization: `Basic ${Buffer.from(
+              `api:${this.options.apiKey}`,
+            ).toString('base64')}`,
+          },
+          body: form,
         },
-        body: form,
-      });
+      );
+      return true;
     } catch (error) {
       console.log(error);
+      return false;
     }
   }
 
   sendVerificationEmail(email: string, code: string) {
-    this.sendEMail('Verify Your Email', 'nubersmailtemp', [
+    this.sendEmail('Verify Your Email', 'nubersmailtemp', [
       { key: 'code', value: code },
       { key: 'username', value: email },
     ]);
