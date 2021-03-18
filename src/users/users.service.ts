@@ -15,7 +15,7 @@ import { UserProfileInput, UserProfileOutput } from './dtos/user-profile.dto';
 import { MailService } from 'src/mail/mail.service';
 
 @Injectable()
-export class UsersService {
+export class UserService {
   constructor(
     @InjectRepository(User) private readonly users: Repository<User>,
     @InjectRepository(Verification)
@@ -67,12 +67,10 @@ export class UsersService {
 
   async findById(input: UserProfileInput): Promise<UserProfileOutput> {
     try {
-      const user = await this.users.findOne(input.userId);
-      console.log(input);
-      if (!user) return { ok: false, error: 'User not found' };
+      const user = await this.users.findOneOrFail(input.userId);
       return { ok: true, user };
     } catch (error) {
-      return { ok: false, error };
+      return { ok: false, error: 'User not found' };
     }
   }
 
@@ -106,13 +104,12 @@ export class UsersService {
       );
       if (verification) {
         verification.user.isVerified = true;
-        this.users.save(verification.user);
+        await this.users.save(verification.user);
         await this.verifications.delete(verification.id);
         return { ok: true };
       }
       return { ok: false, error: 'Verification not found.' };
     } catch (error) {
-      console.log(error);
       return { ok: false, error };
     }
   }
