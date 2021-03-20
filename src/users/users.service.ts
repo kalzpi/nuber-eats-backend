@@ -53,6 +53,7 @@ export class UserService {
         { email },
         { select: ['id', 'password'] },
       );
+
       if (!user) {
         return { ok: false, error: 'Invalid Credential' };
       }
