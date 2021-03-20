@@ -81,6 +81,9 @@ export class UserService {
     try {
       const user = await this.users.findOne(userId);
       if (email) {
+        await this.verifications.delete({ user });
+        const isTaken = await this.users.findOne({ email });
+        if (isTaken) return { ok: false, error: 'Email already taken' };
         user.email = email;
         user.isVerified = false;
         const verification = await this.verifications.save(
