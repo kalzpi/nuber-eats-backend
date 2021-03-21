@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
 import { AllCategoriesOutput } from './dtos/all-categories.dto';
+import { CategoryInput, CategoryOutput } from './dtos/category.dto';
 import {
   CreateRestaurantInput,
   CreateRestaurantOutput,
@@ -15,6 +16,7 @@ import {
   EditRestaurantInput,
   EditRestaurantOutput,
 } from './dtos/edit-restaurant.dto';
+import { RestaurantOutput, RestaurantsInput } from './dtos/restaurants.dto';
 import { Category } from './entities/category.entity';
 import { Restaurant } from './entities/restaurant.entity';
 import { CategoryRepository } from './repositories/category.repository';
@@ -113,8 +115,51 @@ export class RestaurantService {
     }
   }
 
-  async countRestaurant(category: Category) {
-    const count = await this.restaurants.count({ category });
+  countRestaurant(category: Category): Promise<number> {
+    const count = this.restaurants.count({ category });
     return count;
+  }
+
+  async findCategoryBySlug({
+    slug,
+    page,
+  }: CategoryInput): Promise<CategoryOutput> {
+    try {
+      const category = await this.categories.findOne({ slug });
+      if (!category) return { ok: false, error: 'No category with that name' };
+      const [items, totalItems] = await this.restaurants.findAndCount({
+        where: { category },
+        take: 15,
+        skip: (page - 1) * 15,
+      });
+
+      return {
+        ok: true,
+        category,
+        totalPages: Math.ceil(totalItems / 15),
+        items,
+        totalItems,
+      };
+    } catch (error) {
+      return { ok: false, error: 'Could not load category' };
+    }
+  }
+
+  async allRestaurants({ page }: RestaurantsInput): Promise<RestaurantOutput> {
+    try {
+      const [items, totalItems] = await this.restaurants.findAndCount({
+        take: 15,
+        skip: (page - 1) * 15,
+      });
+      return {
+        ok: true,
+        items,
+        totalItems,
+        page,
+        totalPages: Math.ceil(totalItems / 15),
+      };
+    } catch (error) {
+      return { ok: false, error: 'Could not load restaurants' };
+    }
   }
 }

@@ -79,6 +79,16 @@ type AllCategoriesOutput {
   categories: [Category!]
 }
 
+type CategoryOutput {
+  error: String
+  ok: Boolean!
+  totalPages: Int
+  totalItems: Int
+  page: Int
+  items: [Restaurant!]
+  category: Category
+}
+
 type DeleteRestaurantOutput {
   error: String
   ok: Boolean!
@@ -89,10 +99,30 @@ type EditRestaurantOutput {
   ok: Boolean!
 }
 
+type RestaurantOutput {
+  error: String
+  ok: Boolean!
+  totalPages: Int
+  totalItems: Int
+  page: Int
+  items: [Restaurant!]
+}
+
 type Query {
   me: User!
   userProfile(userId: Float!): UserProfileOutput!
+  restaurants(input: RestaurantsInput!): RestaurantOutput!
   allCategories: AllCategoriesOutput!
+  category(input: CategoryInput!): CategoryOutput!
+}
+
+input RestaurantsInput {
+  page: Int = 1
+}
+
+input CategoryInput {
+  page: Int = 1
+  slug: String!
 }
 
 type Mutation {
