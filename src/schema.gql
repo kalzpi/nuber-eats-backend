@@ -2,22 +2,6 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-type Category {
-  id: Float!
-  createdAt: DateTime!
-  UpdatedAt: DateTime!
-  name: String!
-  slug: String!
-  coverImage: String
-  restaurants: [Restaurant!]!
-  restaurantCount: Int!
-}
-
-"""
-A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
-"""
-scalar DateTime
-
 type DishChoices {
   name: String!
   extraPrice: Int
@@ -41,6 +25,41 @@ type Dish {
   options: [DishOption!]
 }
 
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Order {
+  id: Float!
+  createdAt: DateTime!
+  UpdatedAt: DateTime!
+  customer: User
+  driver: User
+  restaurant: Restaurant!
+  dishes: [Dish!]!
+  total: Float
+  status: OrderStatus!
+}
+
+enum OrderStatus {
+  Pending
+  Cooking
+  PickedUp
+  Delivered
+}
+
+type Category {
+  id: Float!
+  createdAt: DateTime!
+  UpdatedAt: DateTime!
+  name: String!
+  slug: String!
+  coverImage: String
+  restaurants: [Restaurant!]!
+  restaurantCount: Int!
+}
+
 type Restaurant {
   id: Float!
   createdAt: DateTime!
@@ -51,6 +70,7 @@ type Restaurant {
   category: Category
   owner: User!
   menu: [Dish!]!
+  orders: [Order!]!
 }
 
 type User {
@@ -62,6 +82,8 @@ type User {
   role: UserRole!
   isVerified: Boolean!
   restaurants: [Restaurant!]!
+  orders: [Order!]!
+  rides: [Order!]!
 }
 
 enum UserRole {
@@ -162,6 +184,11 @@ type SearchRestaurantOutput {
   restaurants: [Restaurant!]
 }
 
+type CreateOrderOutput {
+  error: String
+  ok: Boolean!
+}
+
 type Query {
   me: User!
   userProfile(userId: Float!): UserProfileOutput!
@@ -201,6 +228,7 @@ type Mutation {
   createDish(input: CreateDishInput!): CreateDishOutput!
   editDish(input: EditDishInput!): EditDishOutput!
   deleteDish(input: DeleteDishInput!): DeleteDishOutput!
+  createOrder(input: CreateOrderInput!): CreateOrderOutput!
 }
 
 input CreateAccountInput {
@@ -272,4 +300,54 @@ input EditDishInput {
 
 input DeleteDishInput {
   dishId: Int!
+}
+
+input CreateOrderInput {
+  dishes: [DishInputType!]!
+  restaurantId: Int!
+}
+
+input DishInputType {
+  name: String!
+  price: Int!
+  description: String!
+  photo: String
+  restaurant: RestaurantInputType
+  options: [DishOptionInputType!]
+}
+
+input RestaurantInputType {
+  name: String!
+  coverImage: String
+  address: String!
+  category: CategoryInputType
+  owner: UserInputType!
+  menu: [DishInputType!]!
+  orders: [OrderInputtype!]!
+}
+
+input CategoryInputType {
+  name: String!
+  slug: String!
+  coverImage: String
+  restaurants: [RestaurantInputType!]!
+}
+
+input UserInputType {
+  email: String!
+  password: String!
+  role: UserRole!
+  isVerified: Boolean!
+  restaurants: [RestaurantInputType!]!
+  orders: [OrderInputtype!]!
+  rides: [OrderInputtype!]!
+}
+
+input OrderInputtype {
+  customer: UserInputType
+  driver: UserInputType
+  restaurant: RestaurantInputType!
+  dishes: [DishInputType!]!
+  total: Float
+  status: OrderStatus!
 }
