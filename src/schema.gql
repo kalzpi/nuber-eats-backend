@@ -10,6 +10,7 @@ type Category {
   slug: String!
   coverImage: String
   restaurants: [Restaurant!]!
+  restaurantCount: Int!
 }
 
 """
@@ -72,6 +73,17 @@ type VerifyEmailOutput {
   ok: Boolean!
 }
 
+type AllCategoriesOutput {
+  error: String
+  ok: Boolean!
+  categories: [Category!]
+}
+
+type DeleteRestaurantOutput {
+  error: String
+  ok: Boolean!
+}
+
 type EditRestaurantOutput {
   error: String
   ok: Boolean!
@@ -80,6 +92,7 @@ type EditRestaurantOutput {
 type Query {
   me: User!
   userProfile(userId: Float!): UserProfileOutput!
+  allCategories: AllCategoriesOutput!
 }
 
 type Mutation {
@@ -89,6 +102,7 @@ type Mutation {
   verifyEmail(input: VerifyEmailInput!): VerifyEmailOutput!
   createRestaurant(input: CreateRestaurantInput!): CreateAccountOutput!
   editRestaurant(input: EditRestaurantInput!): EditRestaurantOutput!
+  deleteRestaurant(input: DeleteRestaurantInput!): DeleteRestaurantOutput!
 }
 
 input CreateAccountInput {
@@ -123,5 +137,9 @@ input EditRestaurantInput {
   coverImage: String
   address: String
   categoryName: String
+  restaurantId: Float!
+}
+
+input DeleteRestaurantInput {
   restaurantId: Float!
 }
