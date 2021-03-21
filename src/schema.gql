@@ -18,6 +18,29 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type DishChoices {
+  name: String!
+  extraPrice: Int
+}
+
+type DishOption {
+  name: String!
+  choices: [DishChoices!]
+  extraPrice: Int
+}
+
+type Dish {
+  id: Float!
+  createdAt: DateTime!
+  UpdatedAt: DateTime!
+  name: String!
+  price: Int!
+  description: String!
+  photo: String
+  restaurant: Restaurant
+  options: [DishOption!]
+}
+
 type Restaurant {
   id: Float!
   createdAt: DateTime!
@@ -27,6 +50,7 @@ type Restaurant {
   address: String!
   category: Category
   owner: User!
+  menu: [Dish!]!
 }
 
 type User {
@@ -85,11 +109,26 @@ type CategoryOutput {
   totalPages: Int
   totalItems: Int
   page: Int
-  items: [Restaurant!]
+  restaurants: [Restaurant!]
   category: Category
 }
 
+type CreateDishOutput {
+  error: String
+  ok: Boolean!
+}
+
+type DeleteDishOutput {
+  error: String
+  ok: Boolean!
+}
+
 type DeleteRestaurantOutput {
+  error: String
+  ok: Boolean!
+}
+
+type EditDishOutput {
   error: String
   ok: Boolean!
 }
@@ -159,6 +198,9 @@ type Mutation {
   createRestaurant(input: CreateRestaurantInput!): CreateAccountOutput!
   editRestaurant(input: EditRestaurantInput!): EditRestaurantOutput!
   deleteRestaurant(input: DeleteRestaurantInput!): DeleteRestaurantOutput!
+  createDish(input: CreateDishInput!): CreateDishOutput!
+  editDish(input: EditDishInput!): EditDishOutput!
+  deleteDish(input: DeleteDishInput!): DeleteDishOutput!
 }
 
 input CreateAccountInput {
@@ -198,4 +240,36 @@ input EditRestaurantInput {
 
 input DeleteRestaurantInput {
   restaurantId: Float!
+}
+
+input CreateDishInput {
+  name: String!
+  price: Int!
+  description: String!
+  options: [DishOptionInputType!]
+  restaurantId: Int!
+}
+
+input DishOptionInputType {
+  name: String!
+  choices: [DishChoiceInputType!]
+  extraPrice: Int
+}
+
+input DishChoiceInputType {
+  name: String!
+  extraPrice: Int
+}
+
+input EditDishInput {
+  name: String
+  price: Int
+  description: String
+  options: [DishOptionInputType!]
+  restaurantId: Int
+  dishId: Int!
+}
+
+input DeleteDishInput {
+  dishId: Int!
 }

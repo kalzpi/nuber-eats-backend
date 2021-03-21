@@ -15,7 +15,7 @@ export class CategoryInput extends PaginationInput {
 @ObjectType()
 export class CategoryOutput extends PaginationOutput {
   @Field((type) => [Restaurant], { nullable: true })
-  items?: Restaurant[];
+  restaurants?: Restaurant[];
 
   @Field((type) => Category, { nullable: true })
   category?: Category;
