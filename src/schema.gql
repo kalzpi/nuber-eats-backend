@@ -99,7 +99,7 @@ type EditRestaurantOutput {
   ok: Boolean!
 }
 
-type RestaurantOutput {
+type RestaurantsOutput {
   error: String
   ok: Boolean!
   totalPages: Int
@@ -108,16 +108,42 @@ type RestaurantOutput {
   items: [Restaurant!]
 }
 
+type RestaurantOutput {
+  error: String
+  ok: Boolean!
+  restaurant: Restaurant
+}
+
+type SearchRestaurantOutput {
+  error: String
+  ok: Boolean!
+  totalPages: Int
+  totalItems: Int
+  page: Int
+  restaurants: [Restaurant!]
+}
+
 type Query {
   me: User!
   userProfile(userId: Float!): UserProfileOutput!
-  restaurants(input: RestaurantsInput!): RestaurantOutput!
+  restaurants(input: RestaurantsInput!): RestaurantsOutput!
+  restaurant(input: RestaurantInput!): RestaurantOutput!
+  searchRestaurant(input: SearchRestaurantInput!): SearchRestaurantOutput!
   allCategories: AllCategoriesOutput!
   category(input: CategoryInput!): CategoryOutput!
 }
 
 input RestaurantsInput {
   page: Int = 1
+}
+
+input RestaurantInput {
+  restaurantId: Int!
+}
+
+input SearchRestaurantInput {
+  page: Int = 1
+  query: String!
 }
 
 input CategoryInput {
