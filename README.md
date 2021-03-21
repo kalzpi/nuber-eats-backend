@@ -788,3 +788,37 @@ Verification {
 ```
 
 select에 id까지 함께 불러온 이유는, 이렇게 명시적으로 select해 올 필드를 선언할 경우에는 정확하게 그 필드만을 불러오기 때문이다. 따라서 email만 select 해줄 경우 passwordCorrect까지는 true가 되겠지만, user.id가 undefined상태로 전달된 효력없는 token이 생성된다. 위와 같이 id도 함께 명시해주어야 한다.
+
+### 10.8 Edit Restaurant part Two
+
+- @relationId decorator
+
+Restaurant entity는 User type field owner를 갖고, ManyToOne decorator를 사용하여 User와의 관계를 정의하고 있다. 그렇다면 차후 service에서 restaurant를 불러올 때 비교를 위해 userId만 불러오고 싶으면 어떻게 해야할까?
+
+방법 1. this.restaurants.find({id:RestaurantId}).owner.userId
+가장 직관적이지만 매우 느리다. userId 하나를 불러오기 위해 user object 전체를 불러온 뒤 그 안에서 다시 id를 보아야 하기 때문.
+
+방법 2. findOne method에서 {loadRelationIds:true}를 두 번째 인자로 넣는 방법
+이것 또한 다른 문제를 불러온다, 아래 코드를 보자.
+
+```typescript
+const restaurant = this.restaurants.findOne({id:1}, {loadRelationIds:true})
+if(user!==restaurant.owner){
+  throw new Error();
+}
+```
+
+위 코드는 작동하지 않을 것이다. 왜냐하면 restaurant.owner는 User type이라고 정의 해 뒀기 때문이다.
+
+방법 3. 결론적으로 아래 방법대로 진행해야한다.
+
+```typescript
+  @Field((type) => User)
+  @ManyToOne((type) => User, (user) => user.restaurants, {
+    onDelete: 'CASCADE',
+  })
+  owner: User;
+
+  @RelationId((restaurant:Restaurant)=>restaurant.owner)
+  ownerId:number;
+```
