@@ -56,16 +56,20 @@ export class OrderResolver {
   }
 
   @Mutation((returns) => Boolean)
-  hotKimchiReady() {
+  hotKimchiReady(@Args('id') id: number) {
     this.pubsub.publish('hotKimchi', {
-      kimchi: 'Kimchi is the world best food!',
+      kimchi: id,
     });
     return true;
   }
 
-  @Subscription((returns) => String)
+  @Subscription((returns) => String, {
+    filter: ({ kimchi }, { id }) => {
+      return kimchi === id;
+    },
+  })
   @Role(['Any'])
-  kimchi(@AuthUser() user: User) {
+  kimchi(@AuthUser() user: User, @Args('id') id: number) {
     return this.pubsub.asyncIterator('hotKimchi');
   }
 }

@@ -276,7 +276,7 @@ type Mutation {
   deleteDish(input: DeleteDishInput!): DeleteDishOutput!
   createOrder(input: CreateOrderInput!): CreateOrderOutput!
   editOrder(input: EditOrderInput!): EditOrderOutput!
-  hotKimchiReady: Boolean!
+  hotKimchiReady(id: Float!): Boolean!
 }
 
 input CreateAccountInput {
@@ -366,5 +366,5 @@ input EditOrderInput {
 }
 
 type Subscription {
-  kimchi: String!
+  kimchi(id: Float!): String!
 }
