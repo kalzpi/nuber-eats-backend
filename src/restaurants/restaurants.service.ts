@@ -224,10 +224,8 @@ export class RestaurantService {
       const dish = await this.dishes.save(
         this.dishes.create({ ...createDishInput, restaurant }),
       );
-      console.log(dish);
       return { ok: true };
     } catch (error) {
-      console.log(error);
       return { ok: false, error: 'Could not create dish' };
     }
   }
