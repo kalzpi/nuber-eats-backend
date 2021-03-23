@@ -8,13 +8,16 @@ import { Role } from 'src/auth/role.decorator';
 import { GetOrdersInput, GetOrdersOutput } from './dtos/get-orders.dto';
 import { GetOrderInput, GetOrderOutput } from './dtos/get-order.dto';
 import { EditOrderInput, EditOrderOutput } from './dtos/edit-order.dto';
+import { Inject } from '@nestjs/common';
+import { PUB_SUB } from 'src/common/common.constants';
 import { PubSub } from 'graphql-subscriptions';
-
-const pubsub = new PubSub();
 
 @Resolver((of) => Order)
 export class OrderResolver {
-  constructor(private readonly orderService: OrderService) {}
+  constructor(
+    private readonly orderService: OrderService,
+    @Inject(PUB_SUB) private readonly pubsub: PubSub,
+  ) {}
 
   @Mutation((returns) => CreateOrderOutput)
   @Role(['Client'])
@@ -54,13 +57,15 @@ export class OrderResolver {
 
   @Mutation((returns) => Boolean)
   hotKimchiReady() {
-    pubsub.publish('hotKimchi', { kimchi: 'Kimchi is the world best food!' });
+    this.pubsub.publish('hotKimchi', {
+      kimchi: 'Kimchi is the world best food!',
+    });
     return true;
   }
 
   @Subscription((returns) => String)
   @Role(['Any'])
   kimchi(@AuthUser() user: User) {
-    return pubsub.asyncIterator('hotKimchi');
+    return this.pubsub.asyncIterator('hotKimchi');
   }
 }
