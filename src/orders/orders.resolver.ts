@@ -59,7 +59,9 @@ export class OrderResolver {
   }
 
   @Subscription((returns) => String)
-  kimchi() {
+  @Role(['Any'])
+  kimchi(@AuthUser() user: User) {
+    console.log(user);
     return pubsub.asyncIterator('hotKimchi');
   }
 }

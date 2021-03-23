@@ -15,6 +15,8 @@ export class AuthGuard implements CanActivate {
     // Roles 설정이 없다면? public resolver라는 뜻.
     if (!roles) return true;
     const gqlContext = GqlExecutionContext.create(context).getContext();
+    console.log(gqlContext.token);
+
     const user: User = gqlContext['user'];
     // Roles에 설정이 있는데 user가 없다면?
     if (!user) return false;
