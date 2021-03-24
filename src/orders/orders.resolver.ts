@@ -9,7 +9,7 @@ import { GetOrdersInput, GetOrdersOutput } from './dtos/get-orders.dto';
 import { GetOrderInput, GetOrderOutput } from './dtos/get-order.dto';
 import { EditOrderInput, EditOrderOutput } from './dtos/edit-order.dto';
 import { Inject } from '@nestjs/common';
-import { PUB_SUB } from 'src/common/common.constants';
+import { NEW_PENDING_ORDER, PUB_SUB } from 'src/common/common.constants';
 import { PubSub } from 'graphql-subscriptions';
 
 @Resolver((of) => Order)
@@ -55,21 +55,33 @@ export class OrderResolver {
     return this.orderService.editOrder(authUser, editOrderInput);
   }
 
-  @Mutation((returns) => Boolean)
-  hotKimchiReady(@Args('id') id: number) {
-    this.pubsub.publish('hotKimchi', {
-      kimchi: id,
-    });
-    return true;
-  }
+  // @Mutation((returns) => Boolean)
+  // hotKimchiReady(@Args('kimchiId') kimchiId: number) {
+  //   this.pubsub.publish('hotKimchi', {
+  //     kimchi: kimchiId,
+  //   });
+  //   return true;
+  // }
 
-  @Subscription((returns) => String, {
-    filter: ({ kimchi }, { id }) => {
-      return kimchi === id;
+  // @Subscription((returns) => String, {
+  //   filter: ({ kimchi }, { id }) => {
+  //     return kimchi === id;
+  //   },
+  //   resolve: ({ kimchi }) => `Kimchi ID ${kimchi} is ready!`,
+  // })
+  // @Role(['Any'])
+  // kimchi(@AuthUser() user: User, @Args('id') id: number) {
+  //   return this.pubsub.asyncIterator('hotKimchi');
+  // }
+
+  @Subscription((returns) => Order, {
+    filter: ({ pendingOrders: { ownerId } }, _, { user }) => {
+      return ownerId === user.id;
     },
+    resolve: ({ pendingOrders: { order } }) => order,
   })
-  @Role(['Any'])
-  kimchi(@AuthUser() user: User, @Args('id') id: number) {
-    return this.pubsub.asyncIterator('hotKimchi');
+  @Role(['Owner'])
+  pendingOrders() {
+    return this.pubsub.asyncIterator(NEW_PENDING_ORDER);
   }
 }

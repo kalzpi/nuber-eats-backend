@@ -60,7 +60,6 @@ export class RestaurantResolver {
 
 Nestjs REST API때와 마찬가지로, argument 또한 decorator로 요청할 수 있다. 여기서 편리한 것은, argument의 type을 typescript 방식으로만 정의 해 두어도 graphql Playground에서 확인해 보면 argument의 type definition이 잘 이루어지고 있다는 점이다.
 
-
 ### 1.4 InputTypes and ArgTypes
 
 Argument의 수가 많아지게 되면, resolver의 decorator 안에 너무 많은 argument를 정의하여야 하므로 가독성이 떨어지며, 재활용에도 문제가 있다. 따라서 InputType을 지정하여 조금 더 나은 코드를 작성할 수 있다.
@@ -136,9 +135,7 @@ export class RestaurantResolver {
     return [];
   }
   @Mutation((returns) => Boolean)
-  createRestaurant2(
-    @Args() createRestaurantDto: CreateRestaurantDto,
-  ): boolean {
+  createRestaurant2(@Args() createRestaurantDto: CreateRestaurantDto): boolean {
     return true;
   }
 }
@@ -146,7 +143,7 @@ export class RestaurantResolver {
 
 ```graphql
 mutation {
-    createRestaurant(        
+    createRestaurant(
             name: "Foo",
             isVegan: false,
             address: "Foo",
@@ -221,7 +218,6 @@ export class Restaurant {
   @Column()
   ownerName: string;
 }
-
 ```
 
 기존의 @Field decorator나 @ObjectType decorator는 GraphQL schema를 자동 생성하기 위한 목적이었다면, TypeORM을 통해 database migration을 하기 위해서는 @Entity decorator가 필요하다. 이 두 가지의 decorator는 놀랍게도 같이 사용이 가능하며, 위와 같이 구성 하면 된다.
@@ -289,7 +285,6 @@ export class CreateRestaurantDto extends OmitType(
 
 Mapped type을 사용하게 되며 validator들을 모두 잃었는데, validator는 entity에도 적용이 가능하다.
 
-
 ### 3.6 Optional Types and Columns
 
 이제 우리는 Entity를 update할 때 세 가지를 동시에 신경써줘야 한다.
@@ -315,9 +310,7 @@ import { ArgsType, Field, InputType, PartialType } from '@nestjs/graphql';
 import { CreateRestaurantDto } from './create-restaurant.dto';
 
 @InputType()
-class UpdateRestaurantInputType extends PartialType(
-  CreateRestaurantDto,
-) {}
+class UpdateRestaurantInputType extends PartialType(CreateRestaurantDto) {}
 
 @ArgsType()
 export class UpdateRestaurantDto {
@@ -327,7 +320,6 @@ export class UpdateRestaurantDto {
   @Field((type) => UpdateRestaurantInputType)
   data: UpdateRestaurantInputType;
 }
-
 ```
 
 PartialType으로 Restaurant가 아니라 CreateRestaurantDto를 가져오는 이유는 id까지 optional로 하고싶지 않기 때문이다. 그런데 이렇게 하면 id를 받을 수 없는데, 해결 방식에는 두 가지가 있다.
@@ -374,7 +366,7 @@ Typescript type definition과 typeorm decorator는 typescript enum type을 그�
 
 ```typescript
 // users.service.ts
-import * as jwt from 'jsonwebtoken'
+import * as jwt from 'jsonwebtoken';
 const token = jwt.sign({ id: user.id }, process.env.TOKEN_SECRET);
 ```
 
@@ -409,10 +401,10 @@ const token = jwt.sign({ id: user.id }, this.config.get('TOKEN_SECRET'));
 ### Dynamic Module and Static Module
 
 ```typescript
-    GraphQLModule.forRoot({
-      autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
-    }),
-    UsersModule
+GraphQLModule.forRoot({
+  autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+}),
+  UsersModule;
 ```
 
 .forRoot 안에서 Module의 configuration을 해주는 것이 Dynamic Module이고, UsersModule처럼 어떠한 configuration도 붙어있지 않은 것이 Static Module이다.
@@ -450,7 +442,6 @@ DynamicModule에서 providers에 JwtService를 입력하는 것은 일종의 sho
 ```
 
 providers array 안에는 아래와 같이 직접 값을 전달할 수도 있다.
-
 
 ```typescript
 { provide: CONFIG_OPTIONS, useValue: options }
@@ -497,7 +488,6 @@ export class JwtService {
 
 // user.service.ts
 const token = this.jwtService.sign({ id: user.id });
-
 ```
 
 여기서 주목할점은 sign method가 payload라는 object를 인자로 받는다는 점이다. 따라서 이 JwtModule은 어느 프로젝트에서든 import해서 사용할 수 있는 Module이다. 단순히 제공받은 payload를 env의 secret을 이용하여 token화 해주는 method이기 때문이다. 만약 이것을 원하지 않고 오로지 이 프로젝트만을 위해, 그리고 token안에 들어가는 information을 userId에만 국한하려면 payload 대신 userId 인자를 사용하고 sign에서도 userId만을 전달해주면 된다. 나는 재사용 가능한 현재의 컨셉이 마음에 들어 유지할 생각이다.
@@ -519,7 +509,6 @@ export class JwtMiddleware implements NestMiddleware {
     next();
   }
 }
-
 ```
 
 이 Middleware를 적용하고싶은 App의 module에 사용하면 된다. 여기서는 jwt middleware를 모든 곳에서 사용하고 싶기 때문에 아래와 같이 app module에 적용한다.
@@ -556,7 +545,6 @@ export class AppModule implements NestModule {
     });
   }
 }
-
 ```
 
 혹은 아래와 같이 main.ts에서 사용하는 것도 가능하다.
@@ -565,7 +553,7 @@ export class AppModule implements NestModule {
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(new ValidationPipe());
-  app.use(jwtMiddleware)
+  app.use(jwtMiddleware);
   await app.listen(3000);
 }
 bootstrap();
@@ -667,7 +655,7 @@ GraphQL에서 password에 아무 값도 주지 않으니 위와 같이 선언하
   }
 ```
 
-하지만 이 update method에는 큰 특징이 있는데, 이것은 매우 빠른 update method이지만 entity가 실제로 있는지는 체크하지 않는다는 것이다. 즉, 이 method는 users entity를  update하고 있지 않으며 곧바로 DB에 쿼리를 날리고 있다.
+하지만 이 update method에는 큰 특징이 있는데, 이것은 매우 빠른 update method이지만 entity가 실제로 있는지는 체크하지 않는다는 것이다. 즉, 이 method는 users entity를 update하고 있지 않으며 곧바로 DB에 쿼리를 날리고 있다.
 
 이것이 왜 문제가 되냐면, password의 경우에는 현재 entity에서 BeforeInsert, BeforeUpdate 등의 decorator로 entity가 저장되기 전에 hashing해 주는 method가 작동 중인데 이렇게 update를 사용할때는 위 decorator들이 불러지지 않는 것이다.
 
@@ -774,17 +762,17 @@ Verification {
 이러면 한 가지 문제가 발생하는데, 바로 login과 같이 user가 입력한 password와 그 id로 select 한 user entity의 password를 비교하는 것이 불가능해진다는 것이다(password는 undefined가 될 것이다.) select:false로 설정된 필드는 아래와 같이 명시적으로 선언해주면 불러올 수 있게 된다.
 
 ```typescript
-      const user = await this.users.findOne(
-        { email },
-        { select: ['id', 'password'] },
-      );
-      if (!user) {
-        return { ok: false, error: 'Invalid Credential' };
-      }
-      const passwordCorrect = await user.checkPassword(password);
-      if (!passwordCorrect) return { ok: false, error: 'Invalid Credential' };
-      const token = this.jwtService.sign({ id: user.id });
-      return { ok: true, token };
+const user = await this.users.findOne(
+  { email },
+  { select: ['id', 'password'] },
+);
+if (!user) {
+  return { ok: false, error: 'Invalid Credential' };
+}
+const passwordCorrect = await user.checkPassword(password);
+if (!passwordCorrect) return { ok: false, error: 'Invalid Credential' };
+const token = this.jwtService.sign({ id: user.id });
+return { ok: true, token };
 ```
 
 select에 id까지 함께 불러온 이유는, 이렇게 명시적으로 select해 올 필드를 선언할 경우에는 정확하게 그 필드만을 불러오기 때문이다. 따라서 email만 select 해줄 경우 passwordCorrect까지는 true가 되겠지만, user.id가 undefined상태로 전달된 효력없는 token이 생성된다. 위와 같이 id도 함께 명시해주어야 한다.
@@ -802,8 +790,11 @@ Restaurant entity는 User type field owner를 갖고, ManyToOne decorator를 사
 이것 또한 다른 문제를 불러온다, 아래 코드를 보자.
 
 ```typescript
-const restaurant = this.restaurants.findOne({id:1}, {loadRelationIds:true})
-if(user!==restaurant.owner){
+const restaurant = this.restaurants.findOne(
+  { id: 1 },
+  { loadRelationIds: true },
+);
+if (user !== restaurant.owner) {
   throw new Error();
 }
 ```
@@ -822,3 +813,53 @@ if(user!==restaurant.owner){
   @RelationId((restaurant:Restaurant)=>restaurant.owner)
   ownerId:number;
 ```
+
+### Order Subscription
+
+- Pending Orders (Owner) / s: newOrder / t: createOrder(newOrder)
+- OrderStatus (Customer, Delivery, Owner) / s: orderUpdate / t: editOrder(orderUpdate)
+- Pending Pickup Order (Delivery) / s: orderUpdate / t: editOrder(orderUpdate)
+
+Who: Client
+How: Create
+What: Order
+When: Any time
+To: Onwer of Restaurant
+Action: Accept or Decline Order
+
+Who: Client
+How: Cancel
+What: Order
+When: After place an order && Before accepted by Owner
+To: Owner
+Action: Cancel notice
+
+Who: Owner
+How: Accept
+What: Order
+To: Nearby Delivery
+Action: Accept or Decline Delivery
+
+Who: Delivery
+How: Accept
+What: Delivery
+To: Owner
+Action: Delivery accepted notice
+
+Who: Owner
+How: Cooked
+What: Order
+To: Delivery
+Action: Cooked notice
+
+Who: Delivery
+How: Picked
+What: Order
+To: Client, Owner
+Action: Picked notice
+
+Who: Delivery
+How: Delivered
+What: Order
+To: Client Owner
+Action: Delivered notice
