@@ -366,4 +366,10 @@ input EditOrderInput {
 
 type Subscription {
   pendingOrders: Order!
+  cookedOrders: Order!
+  orderUpdates(input: OrderUpdateInput!): Order!
+}
+
+input OrderUpdateInput {
+  id: Float!
 }
