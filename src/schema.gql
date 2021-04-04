@@ -79,7 +79,7 @@ type Restaurant {
   createdAt: DateTime!
   UpdatedAt: DateTime!
   name: String!
-  coverImage: String
+  coverImage: String!
   address: String!
   category: Category
   owner: User!
@@ -187,6 +187,12 @@ type EditRestaurantOutput {
   ok: Boolean!
 }
 
+type MyRestaurantsOutput {
+  error: String
+  ok: Boolean!
+  restaurants: [Restaurant!]
+}
+
 type RestaurantsOutput {
   error: String
   ok: Boolean!
@@ -260,6 +266,7 @@ type Query {
   restaurants(input: RestaurantsInput!): RestaurantsOutput!
   restaurant(input: RestaurantInput!): RestaurantOutput!
   searchRestaurant(input: SearchRestaurantInput!): SearchRestaurantOutput!
+  myRestaurants: MyRestaurantsOutput!
   allCategories: AllCategoriesOutput!
   category(input: CategoryInput!): CategoryOutput!
   getOrders(input: GetOrdersInput!): GetOrdersOutput!
@@ -332,7 +339,7 @@ input VerifyEmailInput {
 
 input CreateRestaurantInput {
   name: String!
-  coverImage: String
+  coverImage: String!
   address: String!
   categoryName: String!
 }

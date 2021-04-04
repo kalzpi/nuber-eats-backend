@@ -19,6 +19,7 @@ import {
   EditRestaurantInput,
   EditRestaurantOutput,
 } from './dtos/edit-restaurant.dto';
+import { MyRestaurantsOutput } from './dtos/my-restaurants.dto';
 import { RestaurantsOutput, RestaurantsInput } from './dtos/restaurants.dto';
 import { RestaurantInput, RestaurantOutput } from './dtos/retaurant.dto';
 import {
@@ -136,12 +137,13 @@ export class RestaurantService {
     page,
   }: CategoryInput): Promise<CategoryOutput> {
     try {
+      const NUMOF_ITEMS_IN_PAGE = 6;
       const category = await this.categories.findOne({ slug });
       if (!category) return { ok: false, error: 'No category with that name' };
       const [items, totalItems] = await this.restaurants.findAndCount({
         where: { category },
-        take: 15,
-        skip: (page - 1) * 15,
+        take: NUMOF_ITEMS_IN_PAGE,
+        skip: (page - 1) * NUMOF_ITEMS_IN_PAGE,
         order: {
           isPromoted: 'DESC',
         },
@@ -150,7 +152,7 @@ export class RestaurantService {
       return {
         ok: true,
         category,
-        totalPages: Math.ceil(totalItems / 15),
+        totalPages: Math.ceil(totalItems / NUMOF_ITEMS_IN_PAGE),
         restaurants: items,
         totalItems,
       };
@@ -161,9 +163,10 @@ export class RestaurantService {
 
   async allRestaurants({ page }: RestaurantsInput): Promise<RestaurantsOutput> {
     try {
+      const NUMOF_ITEMS_IN_PAGE = 6;
       const [items, totalItems] = await this.restaurants.findAndCount({
-        take: 15,
-        skip: (page - 1) * 15,
+        take: NUMOF_ITEMS_IN_PAGE,
+        skip: (page - 1) * NUMOF_ITEMS_IN_PAGE,
         order: {
           isPromoted: 'DESC',
         },
@@ -173,7 +176,7 @@ export class RestaurantService {
         items,
         totalItems,
         page,
-        totalPages: Math.ceil(totalItems / 15),
+        totalPages: Math.ceil(totalItems / NUMOF_ITEMS_IN_PAGE),
       };
     } catch (error) {
       return { ok: false, error: 'Could not load restaurants' };
@@ -196,20 +199,33 @@ export class RestaurantService {
     searchRestaurantInput: SearchRestaurantInput,
   ): Promise<SearchRestaurantOutput> {
     try {
+      const NUMOF_ITEMS_IN_PAGE = 6;
       const [restaurants, totalItems] = await this.restaurants.findAndCount({
-        take: 15,
-        skip: (searchRestaurantInput.page - 1) * 15,
+        take: NUMOF_ITEMS_IN_PAGE,
+        skip: (searchRestaurantInput.page - 1) * NUMOF_ITEMS_IN_PAGE,
         where: { name: Like(`%${searchRestaurantInput.query}%`) },
       });
       return {
         ok: true,
         restaurants,
         totalItems,
-        totalPages: Math.ceil(totalItems / 15),
+        totalPages: Math.ceil(totalItems / NUMOF_ITEMS_IN_PAGE),
         page: searchRestaurantInput.page,
       };
     } catch (error) {
       return { ok: false, error: 'Could not find restaurant' };
+    }
+  }
+
+  async myRestaurants(owner: User): Promise<MyRestaurantsOutput> {
+    try {
+      const restaurants = await this.restaurants.find({ owner });
+      return {
+        ok: true,
+        restaurants,
+      };
+    } catch (error) {
+      return { ok: false, error: 'Could not find my restaurants' };
     }
   }
 
