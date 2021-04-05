@@ -53,7 +53,7 @@ export class RestaurantService {
       );
       newRestaurant.category = category;
       await this.restaurants.save(newRestaurant);
-      return { ok: true };
+      return { ok: true, restaurantId: newRestaurant.id };
     } catch (error) {
       return { ok: false, error: 'Could not create restaurant.' };
     }

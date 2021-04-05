@@ -170,6 +170,7 @@ type CreateDishOutput {
 type CreateRestaurantOutput {
   error: String
   ok: Boolean!
+  restaurantId: Int!
 }
 
 type DeleteDishOutput {
