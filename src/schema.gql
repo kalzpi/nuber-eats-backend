@@ -167,6 +167,11 @@ type CreateDishOutput {
   ok: Boolean!
 }
 
+type CreateRestaurantOutput {
+  error: String
+  ok: Boolean!
+}
+
 type DeleteDishOutput {
   error: String
   ok: Boolean!
@@ -305,7 +310,7 @@ type Mutation {
   login(input: LoginInput!): LoginOutput!
   editProfile(input: EditProfileInput!): EditProfileOutput!
   verifyEmail(input: VerifyEmailInput!): VerifyEmailOutput!
-  createRestaurant(input: CreateRestaurantInput!): CreateAccountOutput!
+  createRestaurant(input: CreateRestaurantInput!): CreateRestaurantOutput!
   editRestaurant(input: EditRestaurantInput!): EditRestaurantOutput!
   deleteRestaurant(input: DeleteRestaurantInput!): DeleteRestaurantOutput!
   createDish(input: CreateDishInput!): CreateDishOutput!

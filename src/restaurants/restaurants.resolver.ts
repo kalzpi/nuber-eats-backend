@@ -45,7 +45,7 @@ import { RestaurantService } from './restaurants.service';
 export class RestaurantResolver {
   constructor(private readonly restaurantService: RestaurantService) {}
 
-  @Mutation((returns) => CreateAccountOutput)
+  @Mutation((returns) => CreateRestaurantOutput)
   @Role(['Owner'])
   async createRestaurant(
     @Args('input') createRestaurantInput: CreateRestaurantInput,
