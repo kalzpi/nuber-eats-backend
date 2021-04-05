@@ -26,6 +26,7 @@ import { CommonModule } from './common/common.module';
 import { PaymentModule } from './payment/payment.module';
 import { Payment } from './payment/entities/payment.entity';
 import { ScheduleModule } from '@nestjs/schedule';
+import { UploadsModule } from './uploads/uploads.module';
 
 @Module({
   imports: [
@@ -92,6 +93,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     OrdersModule,
     CommonModule,
     PaymentModule,
+    UploadsModule,
   ],
   controllers: [],
   providers: [],
