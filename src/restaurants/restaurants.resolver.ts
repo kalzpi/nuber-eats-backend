@@ -28,6 +28,10 @@ import {
   EditRestaurantInput,
   EditRestaurantOutput,
 } from './dtos/edit-restaurant.dto';
+import {
+  MyRestaurantInput,
+  MyRestaurantOutput,
+} from './dtos/my-restaurant.dto';
 import { MyRestaurantsOutput } from './dtos/my-restaurants.dto';
 import { RestaurantsOutput, RestaurantsInput } from './dtos/restaurants.dto';
 import { RestaurantInput, RestaurantOutput } from './dtos/retaurant.dto';
@@ -101,6 +105,15 @@ export class RestaurantResolver {
   @Role(['Owner'])
   myRestaurants(@AuthUser() authUser: User): Promise<MyRestaurantsOutput> {
     return this.restaurantService.myRestaurants(authUser);
+  }
+
+  @Query((returns) => MyRestaurantOutput)
+  @Role(['Owner'])
+  myRestaurant(
+    @AuthUser() authUser: User,
+    @Args('input') myRestaurantInput: MyRestaurantInput,
+  ): Promise<MyRestaurantOutput> {
+    return this.restaurantService.myRestaurant(authUser, myRestaurantInput);
   }
 }
 
