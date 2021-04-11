@@ -232,6 +232,7 @@ type SearchRestaurantOutput {
 type CreateOrderOutput {
   error: String
   ok: Boolean!
+  orderId: Int
 }
 
 type GetOrdersOutput {
