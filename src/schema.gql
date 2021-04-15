@@ -14,7 +14,7 @@ type DishOption {
 }
 
 type Dish {
-  id: Float!
+  id: Int!
   createdAt: DateTime!
   UpdatedAt: DateTime!
   name: String!
@@ -36,7 +36,7 @@ type OrderItemOption {
 }
 
 type OrderItem {
-  id: Float!
+  id: Int!
   createdAt: DateTime!
   UpdatedAt: DateTime!
   dish: Dish!
@@ -44,7 +44,7 @@ type OrderItem {
 }
 
 type Order {
-  id: Float!
+  id: Int!
   createdAt: DateTime!
   UpdatedAt: DateTime!
   customer: User
@@ -64,7 +64,7 @@ enum OrderStatus {
 }
 
 type Category {
-  id: Float!
+  id: Int!
   createdAt: DateTime!
   UpdatedAt: DateTime!
   name: String!
@@ -75,7 +75,7 @@ type Category {
 }
 
 type Restaurant {
-  id: Float!
+  id: Int!
   createdAt: DateTime!
   UpdatedAt: DateTime!
   name: String!
@@ -90,7 +90,7 @@ type Restaurant {
 }
 
 type Payment {
-  id: Float!
+  id: Int!
   createdAt: DateTime!
   UpdatedAt: DateTime!
   transactionId: String!
@@ -100,7 +100,7 @@ type Payment {
 }
 
 type User {
-  id: Float!
+  id: Int!
   createdAt: DateTime!
   UpdatedAt: DateTime!
   email: String!
@@ -302,7 +302,7 @@ input SearchRestaurantInput {
 }
 
 input MyRestaurantInput {
-  id: Float!
+  id: Int!
 }
 
 input CategoryInput {
@@ -315,7 +315,7 @@ input GetOrdersInput {
 }
 
 input GetOrderInput {
-  id: Float!
+  id: Int!
 }
 
 type Mutation {
@@ -417,12 +417,12 @@ input CreateOrderItemInput {
 }
 
 input EditOrderInput {
-  id: Float!
+  id: Int!
   status: OrderStatus!
 }
 
 input TakeOrderInput {
-  id: Float!
+  id: Int!
 }
 
 input CreatePaymentInput {
@@ -437,5 +437,5 @@ type Subscription {
 }
 
 input OrderUpdateInput {
-  id: Float!
+  id: Int!
 }
